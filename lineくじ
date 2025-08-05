@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>くじ引き</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 40px; }
+    #result { margin-top: 20px; font-size: 1.5em; }
+    button { font-size: 1.2em; padding: 12px 24px; }
+  </style>
+</head>
+<body>
+  <h2>くじ引き抽選</h2>
+  <button id="drawButton">くじを引く</button>
+  <div id="result"></div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbwaNYwTHqywsM5Q0DF2f7HSgOx-hY0IgbpSBTt7X_ZzBRhiNkepQMP2sp96gU6GnuqFJg/exec/exec";
+
+    async function init() {
+      await liff.init({ liffId: "2007879900-bkn1Paea" });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      const user = await liff.getProfile();
+      const userId = user.userId;
+
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+
+      if (!code) {
+        document.getElementById("result").textContent = "コードがありません。QRコードからアクセスしてください。";
+        document.getElementById("drawButton").disabled = true;
+        return;
+      }
+
+      document.getElementById("drawButton").addEventListener("click", async () => {
+        document.getElementById("result").textContent = "抽選中…";
+
+        try {
+          const res = await fetch(`${GAS_URL}?code=${code}&userId=${userId}`);
+          const data = await res.json();
+
+          if (data.success) {
+            document.getElementById("result").textContent = `🎉 ${data.rank}：${data.prize} が当たりました！`;
+          } else {
+            document.getElementById("result").textContent = `❌ ${data.message}`;
+          }
+        } catch (e) {
+          document.getElementById("result").textContent = "通信エラーが発生しました。";
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

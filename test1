@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>くじ引きアプリ</title>
+<style>
+body { font-family: sans-serif; text-align: center; margin: 40px; }
+button { padding: 10px 20px; font-size: 18px; cursor: pointer; }
+.result { margin-top: 20px; font-size: 20px; font-weight: bold; }
+</style>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+<h1>くじ引きアプリ</h1>
+<p>QRコードを読み込み、ボタンを押して抽選！</p>
+<button id="drawBtn">抽選する</button>
+<div class="result" id="result"></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwkPd05m81LVitUXUaKxBsupOyUj64XdVfAoryCPFtBnOSJxV8j0lSKBCDXWViudkFwSA/exec";
+
+// LIFF初期化
+liff.init({ liffId: "https://developers.line.biz/console/" })
+.then(() => {
+    console.log("LIFF init OK");
+})
+.catch(err => {
+    console.error("LIFF init Error", err);
+});
+
+// 抽選ボタン
+document.getElementById("drawBtn").addEventListener("click", async () => {
+    // ユーザー情報取得
+    const profile = await liff.getProfile();
+    const userId = profile.userId;
+
+    // URLパラメータからコード取得（QR読み込み想定）
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (!code) {
+        document.getElementById("result").innerText = "コードがありません";
+        return;
+    }
+
+    // GAS API呼び出し
+    const res = await fetch(`${GAS_URL}?code=${code}&userId=${userId}`);
+    const data = await res.json();
+
+    if (data.status === "success") {
+        document.getElementById("result").innerText = `🎉 ${data.prize} が当たりました！`;
+    } else {
+        document.getElementById("result").innerText = `❌ ${data.message}`;
+    }
+});
+</script>
+
+</body>
+</html>

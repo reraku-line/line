@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>くじ引き</title>
+</head>
+<body>
+  <button id="drawButton">抽選する</button>
+  <p id="result"></p>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx12345/exec";
+
+    async function init() {
+      await liff.init({ liffId: "2007879900-bkn1Paea" });
+      const profile = await liff.getProfile();
+      const userId = profile.userId;
+
+      document.getElementById("drawButton").addEventListener("click", async () => {
+        const code = "ABC123"; // QRコード読み取り結果をここに反映
+        const res = await fetch(`${GAS_URL}?code=${code}&userId=${userId}`);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById("result").textContent = `エラー: ${data.error}`;
+        } else {
+          document.getElementById("result").textContent = `おめでとうございます！ ${data.prizeName} が当たりました！`;
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
